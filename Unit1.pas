@@ -11,9 +11,11 @@ type
     Timer1: TTimer;
     Label1: TLabel;
     Button1: TButton;
+    Timer2: TTimer;
     procedure FormShow(Sender: TObject);
     procedure Timer1Timer(Sender: TObject);
     procedure Button1Click(Sender: TObject);
+    procedure Timer2Timer(Sender: TObject);
   private
     { Private declarations }
   public
@@ -21,6 +23,7 @@ type
   end;
 
 var
+g_parent:thandle;
   Form1: TForm1;
    grect: trect;
   gold_left: integer;
@@ -44,10 +47,21 @@ if STRING(WndCaption)='XP1' then
                            BEGIN
                                   SendMessage(ahwnd,WM_LBUTTONDOWN,0,0);
                                                     SendMessage(ahwnd,WM_LBUTTONUP,0,0);
-                           END else
+                           END;
+
+                           if string(wndcaption)='物品栏' then
+                                                  begin
+                                                     form1.caption:='物品栏';
+                                                                  PostMessage(g_parent,WM_KEYDOWN,VK_F2,0);
+PostMessage(g_parent,WM_KEYUP,VK_F2,0);
+keybd_event(VK_F2, 0, 0, 0);
+  keybd_event(VK_F2, 0, KEYEVENTF_KEYUP, 0);
+
+                                                  end;
+
                            if string(wndcaption)='MPC物品栏' then
                            begin
-                              form1.caption:='MPC物品栏';
+                             // form1.caption:='MPC物品栏';
 
 
 
@@ -61,7 +75,7 @@ if STRING(WndCaption)='XP1' then
               //模拟了鼠标右键的点击事件
               //向 扫雷 窗体的 （xOffset+16*col,yOffset+16*row）处 发送鼠标右键按下的消息
               x:=lp.Left+20;//x坐标，随机产生
-              y:=lp.Top+20;//y坐标，随机产生
+              y:=lp.Top+20;//y坐标，随机产生  天石包
               lParamxx:=(y shl 16) or x;
               SendMessage(ahwnd, WM_RBUTTONDOWN, 0, lParamxx);
               //向 扫雷 窗体的 （xOffset+16*col,yOffset+16*row）处 发送鼠标右键抬起的消息
@@ -81,6 +95,7 @@ var
   bmp: tbitmap;
   pixel: TPixelFormat;  ss:string;
 begin
+g_parent:=0;
   gh := 0;
   h := GetWindow(Handle, GW_HWNDFIRST);
   while h <> 0 do
@@ -92,9 +107,11 @@ begin
       ss:='美眉征服';
       if pos( (ss),(sname))>0 then
       begin
+      g_parent:=h;
         gh := FindWindowEx(h, 0, '#32770', nil);
         if gh <> 0 then
           caption := 'zhaodao';
+          exit;
       end;
 
     //  Memo1.Lines.Add(p);
@@ -114,5 +131,21 @@ procedure TForm1.Button1Click(Sender: TObject);
 begin
    EnumChildWindows(gh,@EnumChildWndProc,0);
 end;
+
+procedure TForm1.Timer2Timer(Sender: TObject);
+begin
+        if g_parent<>0 then
+                           begin
+                           SetForegroundWindow( g_parent );
+
+
+keybd_event(VK_F2, 0, 0, 0);
+  keybd_event(VK_F2, 0, KEYEVENTF_KEYUP, 0);
+//timer2.Enabled:=false;
+end;
+
+end;
+
+
 
 end.
