@@ -42,43 +42,26 @@ WndCaption: array[0..254] of Char;
 begin
 GetClassName(AhWnd,wndClassName,254);
 GetWindowText(aHwnd,WndCaption,254);
-//form1.Memo1.Lines.Add(WndCaption);
-if STRING(WndCaption)='XP1' then
+if STRING(WndCaption)='XP1' then    //复活按钮
                            BEGIN
                                   SendMessage(ahwnd,WM_LBUTTONDOWN,0,0);
                                                     SendMessage(ahwnd,WM_LBUTTONUP,0,0);
                            END;
 
-                           if string(wndcaption)='物品栏' then
-                                                  begin
-                                                     form1.caption:='物品栏';
-                                                                  PostMessage(g_parent,WM_KEYDOWN,VK_F2,0);
-PostMessage(g_parent,WM_KEYUP,VK_F2,0);
-keybd_event(VK_F2, 0, 0, 0);
-  keybd_event(VK_F2, 0, KEYEVENTF_KEYUP, 0);
 
-                                                  end;
 
-                           if string(wndcaption)='MPC物品栏' then
+                           if string(wndcaption)='MPC物品栏' then    // 天石包在背包第一位置 起到捡钱目的
                            begin
-                             // form1.caption:='MPC物品栏';
-
-
-
                       GetClientRect(ahwnd,lp)  ;
                                 pp.X:=lp.Left;
                                 pp.Y:=lp.Top;
                           //   ClientToScreen(ahwnd,pp)  ;
             //    SetCursorPos(pp.X+20,pp.y+20)
 
-                                          //在非雷区标注问号
-              //模拟了鼠标右键的点击事件
-              //向 扫雷 窗体的 （xOffset+16*col,yOffset+16*row）处 发送鼠标右键按下的消息
-              x:=lp.Left+20;//x坐标，随机产生
-              y:=lp.Top+20;//y坐标，随机产生  天石包
-              lParamxx:=(y shl 16) or x;
+              x:=lp.Left+20;//x坐标，
+              y:=lp.Top+20;//y坐标，
+              lParamxx:=(y shl 16) or x;     //  高低16位各代表意义
               SendMessage(ahwnd, WM_RBUTTONDOWN, 0, lParamxx);
-              //向 扫雷 窗体的 （xOffset+16*col,yOffset+16*row）处 发送鼠标右键抬起的消息
               SendMessage(ahwnd, WM_RBUTTONUP, 0, lParamxx);
                            end;
 
@@ -111,7 +94,7 @@ g_parent:=0;
         gh := FindWindowEx(h, 0, '#32770', nil);
         if gh <> 0 then
           caption := 'zhaodao';
-          exit;
+          break;
       end;
 
     //  Memo1.Lines.Add(p);
@@ -134,7 +117,7 @@ end;
 
 procedure TForm1.Timer2Timer(Sender: TObject);
 begin
-        if g_parent<>0 then
+        if g_parent<>0 then          //底部快捷键根据需要设置
                            begin
                            SetForegroundWindow( g_parent );
 
