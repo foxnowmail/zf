@@ -4,81 +4,53 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls, ExtCtrls;
+  u_Debug, Dialogs, bitmapdata, Clipbrd, StdCtrls, ExtCtrls, utils;
 
 type
   TForm1 = class(TForm)
-    Timer1: TTimer;
-    Label1: TLabel;
-    Button1: TButton;
-    Timer2: TTimer;
+    Memo1: TMemo;
+    Button5: TButton;
+    Timer6: TTimer;
+    Button9: TButton;
+    Panel1: TPanel;
+    procedure Button5Click(Sender: TObject);
     procedure FormShow(Sender: TObject);
-    procedure Timer1Timer(Sender: TObject);
-    procedure Button1Click(Sender: TObject);
-    procedure Timer2Timer(Sender: TObject);
+    procedure Timer6Timer(Sender: TObject);
+    procedure FormClose(Sender: TObject; var Action: TCloseAction);
+    procedure Button9Click(Sender: TObject);
   private
-    { Private declarations }
-  public
-    { Public declarations }
   end;
 
 var
-g_parent:thandle;
   Form1: TForm1;
-   grect: trect;
-  gold_left: integer;
-  rt: trect;
-  sname: string;
   gh: thandle;
-  x,y,lParamxx:Cardinal;    lp:trect;    pp:tpoint;
+
+var
+  rect: trect;
+  xwidth, yheight: Integer;
+
+var
+  bmp1: TBitmap;
+  Bit1: TBDBitmapData;
+  panel1_dc, game_dc: HDC;
+  compdc: HDC;
+
+
+
 implementation
 
 {$R *.dfm}
-       function EnumChildWndProc(AhWnd:LongInt;
-AlParam:lParam):boolean;stdcall;
-var
-WndClassName: array[0..254] of Char;
-WndCaption: array[0..254] of Char;
-begin
-GetClassName(AhWnd,wndClassName,254);
-GetWindowText(aHwnd,WndCaption,254);
-if STRING(WndCaption)='XP1' then    //复活按钮
-                           BEGIN
-                                  SendMessage(ahwnd,WM_LBUTTONDOWN,0,0);
-                                                    SendMessage(ahwnd,WM_LBUTTONUP,0,0);
-                           END;
 
-
-
-                           if string(wndcaption)='MPC物品栏' then    // 天石包在背包第一位置 起到捡钱目的
-                           begin
-                      GetClientRect(ahwnd,lp)  ;
-                                pp.X:=lp.Left;
-                                pp.Y:=lp.Top;
-                          //   ClientToScreen(ahwnd,pp)  ;
-            //    SetCursorPos(pp.X+20,pp.y+20)
-
-              x:=lp.Left+20;//x坐标，
-              y:=lp.Top+20;//y坐标，
-              lParamxx:=(y shl 16) or x;     //  高低16位各代表意义
-              SendMessage(ahwnd, WM_RBUTTONDOWN, 0, lParamxx);
-              SendMessage(ahwnd, WM_RBUTTONUP, 0, lParamxx);
-                           end;
-
-result:=true;
-end;
 procedure TForm1.FormShow(Sender: TObject);
 var
   h: HWnd;
   p: array[0..254] of char;
-var
-  FPos: tpoint;
-var
-  lt, rb: tpoint;
-  bmp: tbitmap;
-  pixel: TPixelFormat;  ss:string;
+  finded: boolean;
+  ss, sname: string;
 begin
-g_parent:=0;
+  Bit1 := TBDBitmapData.Create;
+  bmp1 := TBitmap.create;
+  finded := false;
   gh := 0;
   h := GetWindow(Handle, GW_HWNDFIRST);
   while h <> 0 do
@@ -87,48 +59,101 @@ g_parent:=0;
     begin
 
       sname := p;
-      ss:='美眉征服';
-      if pos( (ss),(sname))>0 then
+      ss := '美眉征服';
+      if pos((ss), (sname)) > 0 then
       begin
-      g_parent:=h;
         gh := FindWindowEx(h, 0, '#32770', nil);
         if gh <> 0 then
-          caption := 'zhaodao';
-          break;
+          finded := true;
+        break;
       end;
-
-    //  Memo1.Lines.Add(p);
     end;
     h := GetWindow(h, GW_HWNDNEXT);
   end;
+  if finded then
+  begin
+    caption := '游戏找到';
+    GetWindowRect(gh, rect);
 
+    xwidth := rect.Right - rect.Left;
+    yheight := rect.Bottom - rect.Top;
+    Form1.Width := xwidth + memo1.Width;
+    Form1.Height := yheight;
+
+    panel1_dc := GetDC(panel1.Handle);
+    game_dc := GetDC(gh);
+    compdc := CreateCompatibleDC(panel1_dc);
+
+    bmp1.PixelFormat := pf24bit;
+    bmp1.Width := xwidth;
+    bmp1.Height := yheight;
+  end
+  else
+    caption := '游戏没找到'
 
 end;
 
-procedure TForm1.Timer1Timer(Sender: TObject);
+procedure TForm1.Timer6Timer(Sender: TObject);
 begin
-EnumChildWindows(gh,@EnumChildWndProc,0);
+  Button9Click(Self);
+
 end;
 
-procedure TForm1.Button1Click(Sender: TObject);
+procedure TForm1.FormClose(Sender: TObject; var Action: TCloseAction);
 begin
-   EnumChildWindows(gh,@EnumChildWndProc,0);
+  Bit1.Free;
+  bmp1.Free;
+  ReleaseDC(Panel1.Handle, panel1_dc);
+  ReleaseDC(gh, game_dc);
+  DeleteDC(compdc);
 end;
 
-procedure TForm1.Timer2Timer(Sender: TObject);
+procedure TForm1.Button5Click(Sender: TObject);
+var
+  x1, y1: Integer;
 begin
-        if g_parent<>0 then          //底部快捷键根据需要设置
-                           begin
-                           SetForegroundWindow( g_parent );
 
+//  Bit1.LoadFromFile(bmp_path);
+  Bit1.LoadFromBitmap(bmp1);
+  if Bit1.FindCenterColor($5A8BE4, x1, y1) then
+  begin
 
-keybd_event(VK_F2, 0, 0, 0);
-  keybd_event(VK_F2, 0, KEYEVENTF_KEYUP, 0);
-//timer2.Enabled:=false;
+    begin
+      memo1.Lines.Add('天石包位置:' + inttostr(x1) + ' ' + inttostr(y1));
+    end;
+  end
+  else
+    Debug.show('--');
+
 end;
 
+procedure TForm1.Button9Click(Sender: TObject);
+var
+  holdbmp: hgdiobj;
+var
+  x1, y1: Integer;
+begin
+  Timer6.Enabled := false;
+  BitBlt(bmp1.Canvas.Handle, 0, 0, xwidth, yheight, game_dc, 0, 0, SRCCOPY);
+
+ // hbmp1 := LoadImage(0, bmp_path, IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
+
+  holdbmp := SelectObject(compdc, bmp1.Handle);
+
+//  BitBlt(dc, 0, 0, xwidth, yheight, memdc, 0, 0, SRCCOPY);
+//     TransparentBlt(dc,0,0,xwidth,yheight,memdc,0,0,xwidth,yheight,RGB(255,255,255));
+  TransparentBlt(panel1_dc, 0, 0, xwidth, yheight, compdc, 0, 0, xwidth, yheight, RGB(0, 0, 0));
+
+  SelectObject(compdc, holdbmp);
+
+  Bit1.LoadFromBitmap(bmp1);
+  if Bit1.FindCenterColor($5A8BE4, x1, y1) then
+    Memo1.Lines.Text := '天石包位置:' + inttostr(x1) + ' ' + inttostr(y1)
+  else
+    Memo1.Lines.Text := 'no';
+
+  Timer6.Enabled := true;
 end;
-
-
 
 end.
+
